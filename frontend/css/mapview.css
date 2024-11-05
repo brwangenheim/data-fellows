@@ -1,0 +1,80 @@
+/* Reset styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  color: #333;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #2e8b57;
+  padding: 10px 20px;
+  color: white;
+}
+
+header h1 {
+  font-size: 1.8em;
+  font-weight: bold;
+}
+
+header nav a {
+  color: white;
+  text-decoration: none;
+  margin-left: 15px;
+  font-size: 1em;
+}
+
+header nav a:hover {
+  text-decoration: underline;
+}
+
+/* Controls for search and sorting */
+.controls {
+  display: flex;
+  gap: 10px;
+  padding: 10px 20px;
+  background-color: #f3f3f3;
+}
+
+.controls input[type="text"],
+.controls select {
+  padding: 8px 12px;
+  font-size: 1em;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.controls input[type="text"] {
+  flex: 1;
+  max-width: 300px;
+}
+
+#map {
+  width: 100%;
+  height: calc(100vh - 110px); /* Adjust for header and controls height */
+  position: relative;
+}
+
+/* Style for Mapbox popups */
+.mapboxgl-popup {
+  max-width: 300px;
+  font-size: 0.9em;
+}
+
+.mapboxgl-popup-content h3 {
+  margin-bottom: 8px;
+  font-size: 1.2em;
+  color: #2e8b57;
+}
+
+.mapboxgl-popup-content p {
+  margin-bottom: 5px;
+  color: #333;
+}

@@ -1,0 +1,120 @@
+body {
+  margin: 0;
+  padding: 20px;
+  font-family: "Inter", sans-serif;
+}
+#map {
+  height: 400px;
+  width: 100%;
+  margin-top: 10px;
+  border: 1px solid #ccc;
+  position: relative;
+}
+.form-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+}
+.form-group {
+  margin-bottom: 15px;
+}
+label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+input,
+button {
+  width: 100%;
+  padding: 8px;
+  font-size: 16px;
+}
+button {
+  background-color: #2e8b57;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+button:hover {
+  background-color: #1c5f3a;
+}
+
+.instructions {
+  font-style: italic;
+  color: #555;
+  margin-bottom: 10px;
+  font-size: small;
+}
+/* .reset-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  border: none;
+  padding: 8px 12px;
+  cursor: pointer;
+  z-index: 1;
+  max-width: 100px;
+} */
+
+.zoom-buttons {
+  position: absolute;
+  top: 10px; /* Adjust position as needed */
+  right: 10px; /* Adjust position as needed */
+  display: flex;
+  flex-direction: column; /* Stack buttons vertically */
+  gap: 5px; /* Space between buttons */
+  z-index: 1;
+}
+
+/* Button styling */
+.zoom-button {
+  background-color: #2e8b57; /* Dark green */
+  color: white;
+  border: none;
+  padding: 5px;
+  cursor: pointer;
+  font-size: 1.5em; /* Increase font size for better visibility */
+  transition: background-color 0.3s;
+}
+
+.zoom-button:hover,
+.reset-button:hover {
+  background-color: #1c5f3a; /* Darker green on hover */
+}
+
+.thank-you-message {
+  display: none; /* Hidden by default */
+  text-align: center; /* Center text */
+  margin-top: 20px; /* Space above the message */
+}
+
+.thank-you-message button {
+  margin-top: 10px;
+}
+
+header {
+  background-color: #98c7ac; /* Dark green */
+  color: rgb(0, 0, 0);
+  padding: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 1.5em;
+  font-family: "PT Serif", serif;
+}
+
+header nav a {
+  color: rgb(0, 0, 0);
+  text-decoration: none;
+  font-size: 1em;
+  margin: 10px;
+  font-family: "Inter", sans-serif;
+}
+
+header nav a:hover {
+  text-decoration: underline;
+}

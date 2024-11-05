@@ -7,16 +7,16 @@
 // getUploadsByDateRange (optional) - Fetches uploads within a date range.
 // searchUploadsByLocation (optional) - Searches uploads based on proximity to a location.
 
-const { User } = require("../models/userModel");
+const User = require("../models/userModel");
 
 // Fetch all users
-exports.getAllPlants = async (req, res) => {
+exports.getAllUsers = async (req, res) => {
   try {
     console.log("User model:", User);
     const users = await User.findAll();
     res.status(200).json(users);
   } catch (error) {
-    res.status(500).json({ error: "Error fetching plants: " + error.message });
+    res.status(500).json({ error: "Error fetching users: " + error.message });
   }
 };
 

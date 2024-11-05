@@ -1,14 +1,10 @@
-// uploadImage - Handles image uploads and metadata.
-// getAllUploads - Fetches all uploads.
-// getUploadById - Fetches a specific upload by its ID.
-// getUploadsByPlantId - Fetches uploads related to a specific plant species.
-// getUploadsByUserId - Fetches uploads from a specific user ID.
+// TODO:
 // updateUpload - Updates metadata of an upload.
-// deleteUpload - Deletes an upload and its associated image.
 // getUploadsByDateRange (optional) - Fetches uploads within a date range.
 // searchUploadsByLocation (optional) - Searches uploads based on proximity to a location.
 
 const Upload = require("../models/uploadModel");
+const { Op } = require("sequelize");
 
 // Create a new upload
 exports.uploadImage = async (req, res) => {
@@ -60,6 +56,17 @@ exports.getUploadsByPlantID = async (req, res) => {
   }
 };
 
+// Get all uploads for a specific userID
+exports.getUploadsByUserID = async (req, res) => {
+  try {
+    const user_id = req.params.user_id;
+    const uploads = await Upload.findAll({ where: { user_id } });
+    res.status(200).json(uploads);
+  } catch (error) {
+    res.status(500).json({ error: "Error fetching uploads: " + error.message });
+  }
+};
+
 // Delete an upload
 exports.deleteUpload = async (req, res) => {
   const { id } = req.params;
@@ -74,5 +81,23 @@ exports.deleteUpload = async (req, res) => {
     }
   } catch (error) {
     res.status(500).json({ error: "Failed to delete upload." });
+  }
+};
+
+// Get uploads within a date range
+exports.getUploadsByDateRange = async (req, res) => {
+  const { startDate, endDate } = req.query; // Get start and end dates from query parameters
+
+  try {
+    const uploads = await Upload.findAll({
+      where: {
+        date: {
+          [Op.between]: [new Date(startDate), new Date(endDate)], // Use Sequelize's Op.between for date range
+        },
+      },
+    });
+    res.status(200).json(uploads);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch uploads." });
   }
 };

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Plant Database Map</title>
+    <link
+      href="https://api.mapbox.com/mapbox-gl-js/v3.7.0/mapbox-gl.css"
+      rel="stylesheet"
+    />
+    <script src="https://api.mapbox.com/mapbox-gl-js/v3.7.0/mapbox-gl.js"></script>
+    <link rel="stylesheet" href="css/mapview.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Plant Database Map</h1>
+      <nav>
+        <a href="index.html">Home</a>
+        <a href="upload.html">Upload</a>
+      </nav>
+    </header>
+
+    <div class="controls">
+      <input type="text" id="search" placeholder="Search plants..." />
+      <select id="sort">
+        <option value="name">Sort by Name</option>
+        <option value="date">Sort by Date</option>
+      </select>
+    </div>
+
+    <div id="map"></div>
+
+    <script src="js/mapview.js"></script>
+  </body>
+</html>
