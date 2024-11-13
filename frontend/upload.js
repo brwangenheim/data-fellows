@@ -12,7 +12,7 @@ const map = new mapboxgl.Map({
 });
 
 const bounds = [
-  [-71.408, 41.82], // Southwest coordinates [lng, lat]
+  [-71.4066582, 41.81878], // Southwest coordinates [lng, lat]
   [-71.395, 41.832], // Northeast coordinates [lng, lat]
 ];
 
@@ -56,29 +56,51 @@ document
   .getElementById("upload-form")
   .addEventListener("submit", function (event) {
     event.preventDefault();
+
+    // Collect form data
     const email = document.getElementById("email").value;
     const name = document.getElementById("name").value;
     const species = document.getElementById("species").value;
     const date = document.getElementById("date").value;
     const latitude = document.getElementById("latitude").value;
     const longitude = document.getElementById("longitude").value;
+    const photo = document.getElementById("photo").files[0];
 
-    console.log({
-      email,
-      name,
-      species,
-      date,
-      latitude,
-      longitude,
-    });
+    const formData = new FormData();
+    formData.append("email", email);
+    formData.append("name", name);
+    formData.append("species", species);
+    formData.append("date", date);
+    formData.append("latitude", latitude);
+    formData.append("longitude", longitude);
+    formData.append("photo", photo);
 
-    document.getElementById("upload-form").style.display = "none";
-    document.getElementById("thank-you-message").style.display = "block";
+    // Send data to backend
+    fetch("/api/upload", {
+      method: "POST",
+      body: formData,
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.upload_id) {
+          // Show success message
+          document.getElementById("upload-form").style.display = "none";
+          document.getElementById("thank-you-message").style.display = "block";
+        } else {
+          // Handle errors
+          console.error("Error uploading:", data.error);
+          alert("Failed to upload. Please try again.");
+        }
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+        alert("An error occurred. Please try again.");
+      });
   });
 
 document.getElementById("return-home").addEventListener("click", () => {
   // Redirect to home (you can change the URL as needed)
-  window.location.href = "home.html"; // Replace with your home URL
+  window.location.href = "index.html"; // Replace with your home URL
 });
 
 document.getElementById("upload-another").addEventListener("click", () => {
@@ -91,3 +113,20 @@ document.getElementById("upload-another").addEventListener("click", () => {
   // Reset hidden fields
   updateLatLngFields(marker.getLngLat()); // Reset hidden latitude and longitude
 });
+
+const multer = require("multer");
+const path = require("path");
+
+// Configure multer storage
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "data/images/"); // folder where uplaods get saved
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + path.extname(file.originalname)); // Rename file to avoid conflicts
+  },
+});
+
+const upload = multer({ storage: storage });
+
+router.post("/", upload.single("photo"), uploadController.uploadImage);

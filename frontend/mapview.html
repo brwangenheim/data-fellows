@@ -1,35 +1,44 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Plant Database Map</title>
+    <meta charset="utf-8" />
+    <title>Plant Database</title>
+    <meta
+      name="viewport"
+      content="initial-scale=1,maximum-scale=1,user-scalable=no"
+    />
     <link
       href="https://api.mapbox.com/mapbox-gl-js/v3.7.0/mapbox-gl.css"
       rel="stylesheet"
     />
-    <script src="https://api.mapbox.com/mapbox-gl-js/v3.7.0/mapbox-gl.js"></script>
     <link rel="stylesheet" href="css/mapview.css" />
+    <script src="https://api.mapbox.com/mapbox-gl-js/v3.7.0/mapbox-gl.js"></script>
   </head>
   <body>
     <header>
-      <h1>Plant Database Map</h1>
+      <h1>Brown University Plant Mapping</h1>
       <nav>
         <a href="index.html">Home</a>
-        <a href="upload.html">Upload</a>
+        <a href="upload.html">Upload Entry</a>
       </nav>
     </header>
 
-    <div class="controls">
-      <input type="text" id="search" placeholder="Search plants..." />
-      <select id="sort">
-        <option value="name">Sort by Name</option>
-        <option value="date">Sort by Date</option>
-      </select>
+    <div class="container">
+      <div class="plant-list" id="plant-list">
+        <input type="text" id="search-bar" placeholder="Search plants..." />
+        <ul id="plants"></ul>
+      </div>
+      <div id="map">
+        <div class="zoom-buttons">
+          <button class="reset-button" id="reset-button" type="button">
+            Reset
+          </button>
+          <button class="zoom-button" id="zoom-in" type="button">+</button>
+          <button class="zoom-button" id="zoom-out" type="button">-</button>
+        </div>
+      </div>
     </div>
 
-    <div id="map"></div>
-
-    <script src="js/mapview.js"></script>
+    <script src="mapview.js"></script>
   </body>
 </html>

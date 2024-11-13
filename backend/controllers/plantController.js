@@ -1,4 +1,5 @@
 const Plant = require("../models/plantModel");
+const Upload = require("../models/uploadModel");
 
 // Fetch all plants
 exports.getAllPlants = async (req, res) => {

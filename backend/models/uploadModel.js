@@ -38,4 +38,12 @@ const Upload = sequelize.define(
   }
 );
 
+Upload.associate = (models) => {
+  // Define a relationship where each upload has one plant
+  Upload.belongsTo(models.Plant, {
+    foreignKey: "plant_id", // This is the foreign key in the 'uploads' table
+    as: "plant", // Alias for the association
+  });
+};
+
 module.exports = Upload;

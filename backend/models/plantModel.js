@@ -19,7 +19,7 @@ const Plant = sequelize.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
-    class: {
+    family: {
       type: DataTypes.STRING,
       allowNull: false,
     },
@@ -27,16 +27,20 @@ const Plant = sequelize.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
-    common_name: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
   },
   {
-    tableName: "plants", // Specify the table name in the database
-    timestamps: false, // Disable timestamps (createdAt, updatedAt)
+    tableName: "plants",
+    timestamps: false,
   }
 );
+
+Plant.associate = (models) => {
+  // Define the reverse relationship where a plant has many uploads
+  Plant.hasMany(models.Upload, {
+    foreignKey: "plant_id", // This is the foreign key in the 'uploads' table
+    as: "uploads", // Alias for the association
+  });
+};
 
 // Export the Plant model
 module.exports = Plant;
