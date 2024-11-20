@@ -16,7 +16,7 @@ const User = sequelize.define(
       allowNull: false,
       unique: true,
       validate: {
-        isEmail: true, // Email validation
+        isEmail: true,
       },
     },
     user_name: {

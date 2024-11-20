@@ -19,7 +19,9 @@
       <h1>Brown University Plant Mapping</h1>
       <nav>
         <a href="index.html">Home</a>
+        <a href="upload.html">Upload Entry</a>
         <a href="mapview.html">Database</a>
+        <a href="info.html">Info</a>
       </nav>
     </header>
     <div class="form-container">
@@ -39,7 +41,7 @@
         </div>
         <div class="form-group">
           <label for="genus">Genus:</label>
-          <input type="text" id="genus" name="family" required />
+          <input type="text" id="genus" name="genus" required />
         </div>
         <div class="form-group">
           <label for="family">Family:</label>
@@ -64,8 +66,8 @@
           />
         </div>
         <p class="instructions">
-          Drag and drop the pin to mark the plant location. Please be as precise
-          as possible.
+          Drag and drop the pin to mark the plant location. If you go outside
+          the shown bounds, the map will be reset. Please be precise.
         </p>
 
         <div id="map">

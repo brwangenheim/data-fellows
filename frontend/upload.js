@@ -1,7 +1,7 @@
 mapboxgl.accessToken =
   "pk.eyJ1IjoiYnJvb2tlLXdhbmdlbmhlaW0iLCJhIjoiY20zMzgxcjg0MWhpbzJqcTJ0YnZ0MjJtNSJ9.twhHK9A_7E35zs6XlVTTeg";
 
-const initialCoordinates = [-71.402944, 41.826528];
+const initialCoordinates = [-71.3993195, 41.828409];
 
 const map = new mapboxgl.Map({
   container: "map",
@@ -12,9 +12,53 @@ const map = new mapboxgl.Map({
 });
 
 const bounds = [
-  [-71.4066582, 41.81878], // Southwest coordinates [lng, lat]
-  [-71.395, 41.832], // Northeast coordinates [lng, lat]
+  [-71.406, 41.8229], // Southwest coordinates [lng, lat]
+  [-71.392639, 41.833918], // Northeast coordinates [lng, lat]
 ];
+
+map.on("load", () => {
+  // Define the GeoJSON polygon for the bounds
+  map.addSource("bounds-area", {
+    type: "geojson",
+    data: {
+      type: "Feature",
+      geometry: {
+        type: "Polygon",
+        coordinates: [
+          [
+            [bounds[0][0], bounds[0][1]], // Southwest corner
+            [bounds[0][0], bounds[1][1]], // Northwest corner
+            [bounds[1][0], bounds[1][1]], // Northeast corner
+            [bounds[1][0], bounds[0][1]], // Southeast corner
+            [bounds[0][0], bounds[0][1]], // Close the polygon
+          ],
+        ],
+      },
+    },
+  });
+
+  // Add a fill layer to highlight the bounds
+  map.addLayer({
+    id: "bounds-highlight",
+    type: "fill",
+    source: "bounds-area",
+    paint: {
+      "fill-color": "#007cbf", // Adjust color as needed
+      "fill-opacity": 0.1, // Set opacity for transparency
+    },
+  });
+
+  // Add a border around the bounds area
+  map.addLayer({
+    id: "bounds-outline",
+    type: "line",
+    source: "bounds-area",
+    paint: {
+      "line-color": "#007cbf", // Border color
+      "line-width": 2, // Border thickness
+    },
+  });
+});
 
 // Set the maximum bounds of the map
 map.setMaxBounds(bounds);
@@ -24,16 +68,34 @@ const marker = new mapboxgl.Marker({ draggable: true })
   .setLngLat(initialCoordinates) // Set initial marker position
   .addTo(map);
 
+const markerBounds = new mapboxgl.LngLatBounds(
+  [bounds[0][0], bounds[0][1]], // Southwest corner
+  [bounds[1][0], bounds[1][1]] // Northeast corner
+);
+
 // Function to update hidden latitude and longitude fields
 function updateLatLngFields(lngLat) {
   document.getElementById("latitude").value = lngLat.lat;
   document.getElementById("longitude").value = lngLat.lng;
 }
 
+function constrainMarkerPosition() {
+  const markerPosition = marker.getLngLat();
+
+  // Check if the marker is outside the bounds and reset it to the nearest valid position
+  if (!markerBounds.contains(markerPosition)) {
+    const constrainedPosition = markerBounds.getCenter();
+    marker.setLngLat(constrainedPosition);
+    map.setCenter(initialCoordinates);
+    map.setZoom(15);
+  }
+}
+
 // Update fields initially and on dragend
 updateLatLngFields(marker.getLngLat());
 marker.on("dragend", () => {
   updateLatLngFields(marker.getLngLat());
+  constrainMarkerPosition();
 });
 
 document.getElementById("reset-button").addEventListener("click", () => {
@@ -59,8 +121,11 @@ document
 
     // Collect form data
     const email = document.getElementById("email").value;
-    const name = document.getElementById("name").value;
+    const user_name = document.getElementById("name").value;
     const species = document.getElementById("species").value;
+    const genus = document.getElementById("genus").value;
+    const family = document.getElementById("family").value;
+    const order = document.getElementById("order").value;
     const date = document.getElementById("date").value;
     const latitude = document.getElementById("latitude").value;
     const longitude = document.getElementById("longitude").value;
@@ -68,15 +133,19 @@ document
 
     const formData = new FormData();
     formData.append("email", email);
-    formData.append("name", name);
+    formData.append("user_name", user_name);
     formData.append("species", species);
+    formData.append("genus", genus);
+    formData.append("family", family);
+    formData.append("order", order);
     formData.append("date", date);
     formData.append("latitude", latitude);
     formData.append("longitude", longitude);
     formData.append("photo", photo);
+    formData.append("linked", null);
 
     // Send data to backend
-    fetch("/api/upload", {
+    fetch("http://localhost:3000/uploads", {
       method: "POST",
       body: formData,
     })
@@ -113,20 +182,3 @@ document.getElementById("upload-another").addEventListener("click", () => {
   // Reset hidden fields
   updateLatLngFields(marker.getLngLat()); // Reset hidden latitude and longitude
 });
-
-const multer = require("multer");
-const path = require("path");
-
-// Configure multer storage
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "data/images/"); // folder where uplaods get saved
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname)); // Rename file to avoid conflicts
-  },
-});
-
-const upload = multer({ storage: storage });
-
-router.post("/", upload.single("photo"), uploadController.uploadImage);

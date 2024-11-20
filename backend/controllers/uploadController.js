@@ -1,22 +1,83 @@
 // TODO:
 // updateUpload - Updates metadata of an upload.
-// getUploadsByDateRange (optional) - Fetches uploads within a date range.
-// searchUploadsByLocation (optional) - Searches uploads based on proximity to a location.
 
 const Upload = require("../models/uploadModel");
+const User = require("../models/userModel");
 const Plant = require("../models/plantModel");
+const moment = require("moment");
 
 const { Op } = require("sequelize");
 
-// Create a new upload
+const multer = require("multer");
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, path.join(__dirname, "data", "images"));
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + path.extname(file.originalname)); // Unique filename
+  },
+});
+
+const upload = multer({ dest: "../data/images" });
+
+// new upload
 exports.uploadImage = async (req, res) => {
-  const { plant_id, user_id, photo, location } = req.body;
+  const {
+    email,
+    user_name,
+    species,
+    genus,
+    family,
+    order,
+    date,
+    latitude,
+    longitude,
+    linked,
+  } = req.body;
+  const photo = req.file ? `${req.file.filename}` : null;
 
   try {
-    const upload = await Upload.create({ plant_id, user_id, photo, location });
+    // Check if the plant exists
+    let plant = await Plant.findOne({
+      where: { species, genus },
+    });
+    if (!plant) {
+      // If plant doesn't exist, create a new plant
+      plant = await Plant.create({
+        species,
+        genus,
+        family,
+        order,
+      });
+    }
+
+    // Check if the user exists
+    let user = await User.findOne({ where: { user_name } });
+    if (!user) {
+      // If user doesn't exist, create a new user
+      user = await User.create({ user_name, email });
+    }
+
+    const location = `${latitude},${longitude}`;
+
+    // Create the upload
+    const upload = await Upload.create({
+      plant_id: plant.plant_id, // Use the plant's ID
+      user_id: user.user_id, // Use the user's ID
+      photo: photo,
+      location: location,
+      date: date,
+      linked: linked,
+    });
+
+    // Respond with the upload details
     res.status(201).json(upload);
   } catch (error) {
-    res.status(500).json({ error: "Failed to upload image." });
+    console.error("Error in uploadImage:", error); // Detailed logging
+    res
+      .status(500)
+      .json({ error: "Failed to upload image.", details: error.message }); // Send the error details in response
   }
 };
 
@@ -58,17 +119,6 @@ exports.getUploadsByPlantID = async (req, res) => {
   }
 };
 
-// Get all uploads for a specific userID
-exports.getUploadsByUserID = async (req, res) => {
-  try {
-    const user_id = req.params.user_id;
-    const uploads = await Upload.findAll({ where: { user_id } });
-    res.status(200).json(uploads);
-  } catch (error) {
-    res.status(500).json({ error: "Error fetching uploads: " + error.message });
-  }
-};
-
 // Delete an upload
 exports.deleteUpload = async (req, res) => {
   const { id } = req.params;
@@ -83,84 +133,6 @@ exports.deleteUpload = async (req, res) => {
     }
   } catch (error) {
     res.status(500).json({ error: "Failed to delete upload." });
-  }
-};
-
-// Get uploads within a date range
-exports.getUploadsByDateRange = async (req, res) => {
-  const { startDate, endDate } = req.query; // Get start and end dates from query parameters
-
-  try {
-    const uploads = await Upload.findAll({
-      where: {
-        date: {
-          [Op.between]: [new Date(startDate), new Date(endDate)], // Use Sequelize's Op.between for date range
-        },
-      },
-    });
-    res.status(200).json(uploads);
-  } catch (error) {
-    res.status(500).json({ error: "Failed to fetch uploads." });
-  }
-};
-
-// Fetch plant and associated upload data
-exports.getUploadWithPlantById = async (req, res) => {
-  try {
-    const upload_id = req.params.upload_id;
-
-    // Fetch the upload data by ID
-    const upload = await Upload.findOne({
-      where: { id: upload_id }, // Look for the upload with the given upload_id
-    });
-
-    if (!upload) {
-      return res.status(404).json({ error: "Upload not found" });
-    }
-
-    // Fetch the associated plant data using the plant_id from the upload record
-    const plant = await Plant.findByPk(upload.plant_id); // Use plant_id from the upload
-
-    if (!plant) {
-      return res.status(404).json({ error: "Associated plant not found" });
-    }
-
-    // Combine the upload and plant data
-    const uploadWithPlant = {
-      ...upload.dataValues, // Spread the upload data
-      plant: plant.dataValues, // Add plant data to the response
-    };
-
-    res.status(200).json(uploadWithPlant);
-  } catch (error) {
-    res.status(500).json({
-      error: "Error fetching upload with plant data: " + error.message,
-    });
-  }
-};
-
-exports.getAllPlants = async (req, res) => {
-  try {
-    console.log("Fetching all plants...");
-    const plants = await Plant.findAll();
-    res.status(200).json(plants);
-  } catch (error) {
-    res.status(500).json({ error: "Error fetching plants: " + error.message });
-  }
-};
-
-// Fetch plant by ID
-exports.getPlantById = async (req, res) => {
-  try {
-    const plant_id = req.params.plant_id;
-    const plant = await Plant.findByPk(plant_id);
-    if (plant) {
-      res.status(200).json(plant);
-    } else {
-      res.status(404).json({ error: "Plant not found" });
-    }
-  } catch (error) {
-    res.status(500).json({ error: "Error fetching plant: " + error.message });
   }
 };
 
@@ -179,7 +151,11 @@ exports.getPlantAndUploadById = async (req, res) => {
     // Fetch associated upload data by plant ID
     const plant = await Plant.findOne({ where: { plant_id: plant_id } });
     if (!plant) {
-      return res.status(404).json({ error: "PLant not found" });
+      return res.status(404).json({ error: "Plant not found" });
+    }
+    const user = await User.findOne({ where: { user_id: upload.user_id } });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
     }
 
     // Combine the plant and upload data
@@ -189,6 +165,8 @@ exports.getPlantAndUploadById = async (req, res) => {
       genus: plant.genus,
       family: plant.family,
       order: plant.order,
+      user: user.user_name,
+      linked: upload.linked,
     };
 
     res.status(200).json(plantWithUpload);
@@ -224,6 +202,16 @@ exports.getAllUploadsWithPlantData = async (req, res) => {
           .json({ error: "Plant not found for upload ID " + upload.upload_id });
       }
 
+      const user = await User.findOne({
+        where: { user_id: upload.user_id },
+      });
+
+      if (!user) {
+        return res
+          .status(404)
+          .json({ error: "User not found for upload ID " + upload.upload_id });
+      }
+
       // Combine the upload data with the plant data
       const uploadWithPlant = {
         ...upload.dataValues,
@@ -231,6 +219,7 @@ exports.getAllUploadsWithPlantData = async (req, res) => {
         genus: plant.genus,
         family: plant.family,
         order: plant.order,
+        user_name: user.user_name,
       };
 
       uploadsWithPlantData.push(uploadWithPlant);
@@ -243,5 +232,59 @@ exports.getAllUploadsWithPlantData = async (req, res) => {
     res.status(500).json({
       error: "Error fetching uploads with plant data: " + error.message,
     });
+  }
+};
+
+// Update upload metadata
+exports.updateUpload = async (req, res) => {
+  const { id } = req.params; // Extract upload_id from the request params
+  const { species, genus, family, order, latitude, longitude, linked } =
+    req.body;
+
+  try {
+    // Find the upload by id
+    const upload = await Upload.findByPk(id);
+    if (!upload) {
+      return res.status(404).json({ error: "Upload not found." });
+    }
+
+    // Find the associated plant using plant_id
+    const plant = await Plant.findByPk(upload.plant_id);
+    if (!plant) {
+      return res
+        .status(404)
+        .json({ error: "Plant not found for this upload." });
+    }
+
+    let updatedLocation = upload.location; // Default to current location
+    if (latitude && longitude) {
+      updatedLocation = `${latitude},${longitude}`;
+    }
+
+    // If taxonomic information is updated, update the plant record
+    if (species && genus && family && order) {
+      await plant.update({
+        species: species,
+        genus: genus,
+        family: family,
+        order: order,
+      });
+    }
+
+    // Update the upload metadata
+    await upload.update({
+      species: species || upload.species,
+      genus: genus || upload.genus,
+      family: family || upload.family,
+      order: order || upload.order,
+      location: updatedLocation,
+      linked: linked || upload.linked,
+    });
+
+    // Send back the updated upload data
+    res.status(200).json(upload);
+  } catch (error) {
+    console.error("Error updating upload:", error);
+    res.status(500).json({ error: "Failed to update upload." });
   }
 };

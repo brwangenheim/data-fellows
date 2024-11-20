@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Upload Page</title>
+    <meta
+      name="viewport"
+      content="initial-scale=1,maximum-scale=1,user-scalable=no"
+    />
+    <link
+      href="https://api.mapbox.com/mapbox-gl-js/v3.7.0/mapbox-gl.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/info.css" />
+    <script src="https://api.mapbox.com/mapbox-gl-js/v3.7.0/mapbox-gl.js"></script>
+  </head>
+  <body>
+    <header>
+      <h1>Brown University Plant Mapping</h1>
+      <nav>
+        <a href="index.html">Home</a>
+        <a href="upload.html">Upload Entry</a>
+        <a href="mapview.html">Database</a>
+        <a href="info.html">Info</a>
+      </nav>
+    </header>
+    <main>
+      <section>
+        <h2>About This Project</h2>
+        <p>
+          Welcome to the Brown University Plant Mapping project! This initiative
+          aims to collect and map various plant species across campus for BIOL
+          0430, The Evolution of Plant Diversity. By contributing your
+          observations, you help create a comprehensive database of the plant
+          species found here, making it easier for everyone to learn about the
+          local flora. This project was developed by Brooke Wangenheim in Fall
+          2024 as part of Brown University’s Data Science Fellows program.
+        </p>
+      </section>
+
+      <section>
+        <h2>Notice Something Wrong?</h2>
+        <p>
+          Help us maintain the database by flagging incorrect information.
+          Submit the upload ID (the number in parentheses next to the species)
+          and a brief explanation of what is incorrect. For example, “genus is
+          wrong” “plant doesn’t exist” or “typo in species”
+        </p>
+        <form id="flag-form">
+          <label for="entry-id">Entry ID Number:</label>
+          <input type="text" id="entry-id" name="entry-id" rows="1" required />
+
+          <label for="description">Brief Description:</label>
+
+          <input
+            type="text"
+            id="description"
+            name="description"
+            rows="1"
+            required
+          />
+          <button type="submit">Submit Flag</button>
+        </form>
+      </section>
+
+      <section>
+        <h2>Frequently Asked Questions (FAQ)</h2>
+        <dl>
+          <dt>What is this project about?</dt>
+          <dd>
+            This project helps to map and document plant species found at Brown
+            University.
+          </dd>
+
+          <dt>How can I contribute to the map?</dt>
+          <dd>
+            You can contribute by uploading observations of plants you find on
+            campus through our upload page.
+          </dd>
+
+          <dt>How do I flag incorrect information?</dt>
+          <dd>
+            If you notice incorrect data in the database, you can use the form
+            above to submit a flag and describe the issue.
+          </dd>
+
+          <dt>Is there a way to get in touch with the project team?</dt>
+          <dd>Yes! Please reach out to Professor Rebecca Kartizinel.</dd>
+        </dl>
+      </section>
+    </main>
+    <script>
+      // Handle flag form submission
+      document
+        .getElementById("flag-form")
+        .addEventListener("submit", function (event) {
+          event.preventDefault();
+
+          const entryId = document.getElementById("entry-id").value;
+          const description = document.getElementById("description").value;
+          const email = document.getElementById("email").value;
+
+          // Display a confirmation message (this could be replaced with an API call to save the data)
+          alert(
+            `Flag submitted!\nEntry ID: ${entryId}\nDescription: ${description}\nEmail: ${
+              email || "Not provided"
+            }`
+          );
+        });
+    </script>
+  </body>
+</html>

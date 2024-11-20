@@ -5,22 +5,35 @@ body {
 }
 
 header {
-  padding: 1rem;
-  background-color: #457f3e;
-  color: #ffffff;
-  text-align: center;
+  background-color: #98c7ac;
+  color: rgb(0, 0, 0);
+  padding: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-#flagged-banner {
-  cursor: pointer;
-  padding: 0.5rem;
-  text-align: center;
-  background-color: #ffcccb;
-  color: #000;
+header h1 {
+  margin: 0;
+  font-size: 1.5em;
+  font-family: "PT Serif", serif;
+}
+
+header nav a {
+  color: rgb(0, 0, 0);
+  text-decoration: none;
+  font-size: 1em;
+  margin: 10px;
+  font-family: "Inter", sans-serif;
+}
+
+header nav a:hover {
+  text-decoration: underline;
 }
 
 .table-container {
   margin: 2rem;
+  min-height: 200px;
 }
 
 input[type="text"] {
@@ -45,12 +58,128 @@ td {
 th {
   background-color: #f2f2f2;
 }
+/* 
+.popup {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  justify-content: center;
+  align-items: center;
+}
 
-.flagged-container,
-.duplicates-container {
-  margin: 2rem;
-  padding: 1rem;
+.popup-content {
+  background: white;
+  padding: 20px;
+  max-width: 500px;
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.close-btn {
+  align-self: flex-end;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+#map {
+  width: 100%;
+  height: 300px;
+}
+ */
+
+/* General styles for the popup */
+#edit-popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 400px;
+  background-color: white;
   border: 1px solid #ccc;
   border-radius: 8px;
-  background-color: #ffffff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  padding: 20px;
+  display: none;
+}
+
+/* Form styles */
+#edit-popup form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px; /* Add spacing between each field */
+}
+
+/* Field wrapper styles */
+.field-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 5px; /* Space between label and input */
+}
+
+/* Label styles */
+#edit-popup label {
+  font-size: 14px;
+  font-weight: bold;
+  color: #333;
+}
+
+/* Input styles */
+#edit-popup input {
+  padding: 8px;
+  font-size: 14px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+/* Button styles */
+#edit-popup button {
+  padding: 8px 12px;
+  font-size: 14px;
+  font-weight: bold;
+  color: white;
+  background-color: #007bff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+#edit-popup button:hover {
+  background-color: #0056b3;
+}
+
+#edit-popup button[type="button"] {
+  background-color: #6c757d;
+}
+
+#edit-popup button[type="button"]:hover {
+  background-color: #5a6268;
+}
+
+/* Close button (optional) */
+#edit-popup button.cancel {
+  background-color: #dc3545;
+}
+
+#edit-popup button.cancel:hover {
+  background-color: #c82333;
+}
+
+/* Overlay styles */
+#popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  display: none;
 }
