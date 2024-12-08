@@ -34,6 +34,8 @@ exports.uploadImage = async (req, res) => {
     latitude,
     longitude,
     linked,
+    not_linked,
+    flagged,
   } = req.body;
   const photo = req.file ? `${req.file.filename}` : null;
 
@@ -69,6 +71,8 @@ exports.uploadImage = async (req, res) => {
       location: location,
       date: date,
       linked: linked,
+      not_linked: not_linked,
+      flagged: flagged,
     });
 
     // Respond with the upload details
@@ -167,6 +171,8 @@ exports.getPlantAndUploadById = async (req, res) => {
       order: plant.order,
       user: user.user_name,
       linked: upload.linked,
+      linked: upload.not_linked,
+      flagged: upload.flagged,
     };
 
     res.status(200).json(plantWithUpload);
@@ -238,8 +244,17 @@ exports.getAllUploadsWithPlantData = async (req, res) => {
 // Update upload metadata
 exports.updateUpload = async (req, res) => {
   const { id } = req.params; // Extract upload_id from the request params
-  const { species, genus, family, order, latitude, longitude, linked } =
-    req.body;
+  const {
+    species,
+    genus,
+    family,
+    order,
+    latitude,
+    longitude,
+    linked,
+    not_linked,
+    flagged,
+  } = req.body;
 
   try {
     // Find the upload by id
@@ -279,6 +294,8 @@ exports.updateUpload = async (req, res) => {
       order: order || upload.order,
       location: updatedLocation,
       linked: linked || upload.linked,
+      not_linked: not_linked || upload.not_linked,
+      flagged: flagged || upload.flagged,
     });
 
     // Send back the updated upload data

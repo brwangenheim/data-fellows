@@ -36,6 +36,16 @@ const Upload = sequelize.define(
       allowNull: true,
       defaultValue: null,
     },
+    not_linked: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: null,
+    },
+    flagged: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: null,
+    },
   },
   {
     tableName: "uploads",

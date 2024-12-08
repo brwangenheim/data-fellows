@@ -1,21 +1,26 @@
 let selectedEntryId = null;
 let entries = []; // Define entries globally
 
+// this gets us all the entries from the backend, which are then sorted into tables
 async function fetchEntries() {
   try {
     const response = await fetch("http://localhost:3000/uploads/all");
     entries = await response.json(); // Assign fetched entries to the global variable
     console.log("Fetched data:", entries);
-    updateTable(entries); // Update table with all entries initially
+    updateTable(entries); // Normal table = all entires
     const entriesToCombine = findEntriesToCombine(entries);
 
-    // Update the combine table with entries that can be combined
+    // Combine table = just
     updateCombineTable(entriesToCombine);
   } catch (error) {
     console.error("Error fetching entries:", error);
   }
 }
 
+/* MAIN TABLE FUNCTIONS --------------------------------------------------------*/
+
+// this populates the table based on whatever entries are on display --
+// normally this is all of them, but if we're searching, it's filtered
 function updateTable(entriesToDisplay) {
   const tableBody = document.getElementById("table-body");
   tableBody.innerHTML = "";
@@ -38,11 +43,13 @@ function updateTable(entriesToDisplay) {
     tableBody.appendChild(row);
   });
 }
+
+// this deletes an entry based on its given upload id
 async function deleteEntry(upload_id) {
-  // Display a confirmation popup
   const isConfirmed = window.confirm(
     "Are you sure you want to delete this entry?"
   );
+  // Confirmation popup before deleting
 
   if (isConfirmed) {
     try {
@@ -87,23 +94,147 @@ function filterList() {
   // Update the table with the filtered list
   updateTable(filteredList);
 }
+// this is responsible for the editing popup, and sending any edits you make to the backend
+function openEditPopup(uploadId) {
+  selectedEntryId = uploadId;
 
-const round = (value, decimals) => {
-  return Math.round(value * Math.pow(10, decimals)) / Math.pow(10, decimals);
-};
+  // Find the selected entry
+  const entry = entries.find((e) => e.upload_id === uploadId);
 
-function calculateDistance(lat1, lon1, lat2, lon2) {
-  lat1 = round(lat1, 6); // Adjust the precision as needed
-  lon1 = round(lon1, 6);
-  lat2 = round(lat2, 6);
-  lon2 = round(lon2, 6);
+  if (!entry) {
+    console.error("Entry not found.");
+    return;
+  }
 
-  const dLat = Math.abs(lat1 - lat2).toFixed(10);
-  const dLon = Math.abs(lon1 - lon2).toFixed(10);
+  // Populate the edit form with entry data
+  document.getElementById("edit-name").value = entry.user_name || "";
+  document.getElementById("edit-plant").value = entry.plant_id || "";
+  document.getElementById("edit-species").value = entry.species || "";
+  document.getElementById("edit-genus").value = entry.genus || "";
+  document.getElementById("edit-family").value = entry.family || "";
+  document.getElementById("edit-order").value = entry.order || "";
+  const [latitude, longitude] = entry.location.split(",");
+  document.getElementById("edit-latitude").value = latitude.trim() || "";
+  document.getElementById("edit-longitude").value = longitude.trim() || "";
+  document.getElementById("edit-linked").value = entry.linked || "";
 
-  console.log(`Checking distance: dLat = ${dLat}, dLon = ${dLon}`);
+  // Show the popup
+  document.getElementById("edit-popup").style.display = "block";
+}
 
-  return dLat <= 0.0001 && dLon <= 0.0001;
+async function saveChanges() {
+  if (!selectedEntryId) return;
+
+  const updatedData = {
+    user_name: document.getElementById("edit-name").value,
+    plant_id: document.getElementById("edit-plant").value,
+    species: document.getElementById("edit-species").value,
+    genus: document.getElementById("edit-genus").value,
+    family: document.getElementById("edit-family").value,
+    order: document.getElementById("edit-order").value,
+    latitude: parseFloat(document.getElementById("edit-latitude").value),
+    longitude: parseFloat(document.getElementById("edit-longitude").value),
+    linked: document.getElementById("edit-linked").value,
+  };
+
+  const response = await fetch(
+    `http://127.0.0.1:3000/uploads/update/${selectedEntryId}`,
+    {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(updatedData),
+    }
+  );
+
+  if (response.ok) {
+    const updatedEntry = await response.json();
+    console.log("Upload updated successfully:", updatedEntry);
+
+    // Update the entries list locally
+    entries = entries.map((entry) =>
+      entry.upload_id === selectedEntryId ? { ...entry, ...updatedData } : entry
+    );
+
+    // Refresh the table
+    updateTable(entries);
+
+    fetchEntries();
+
+    // Hide the popup
+    closeEditPopup();
+  } else {
+    console.error("Failed to update upload.");
+  }
+}
+
+function closeEditPopup() {
+  // Hide the popup and overlay
+  document.getElementById("edit-popup").style.display = "none";
+  document.getElementById("popup-overlay").style.display = "none";
+}
+
+// FLAGGED TABLE FUNCTIONS -----------------------------------------------------
+
+// updates the flagged table
+function updateFlaggedTable(flaggedEntries) {
+  const flaggedTableBody = document.getElementById("flagged-table-body");
+  flaggedTableBody.innerHTML = "";
+
+  flaggedEntries.forEach((entry) => {
+    const row = document.createElement("tr");
+
+    row.innerHTML = `
+        <td>${entry.upload_id}</td>
+        <td>${entry.flagged}</td>
+        <td>${entry.user_name}</td>
+        <td>${entry.species}</td>
+        <td>${entry.genus}</td>
+        <td>${entry.family}</td>
+        <td>${entry.order}</td>
+        <td>${entry.date}</td>
+        <td>${entry.linked}</td>
+        <td><button onclick="openEditPopup(${entry.upload_id})">Edit</button></td>
+        <td><button onclick="discardFlag(${entry.upload_id})">Delete</button></td>
+      `;
+    flaggedTableBody.appendChild(row);
+  });
+}
+
+function findFlaggedEntries(entries) {
+  const flaggedEntries = entries.filter(
+    (entry) => entry.flagged !== null && entry.flagged !== "null"
+  );
+
+  updateTable(flaggedEntries);
+}
+
+// discardFlag should just set the flag to null`
+
+// SIMILAR TABLE FUNCTIONS -----------------------------------------------------
+
+function updateCombineTable(entriesToCombine) {
+  const combineTableBody = document.getElementById("combine-table-body");
+  combineTableBody.innerHTML = ""; // Clear previous table content
+
+  entriesToCombine.forEach(([entry1, entry2]) => {
+    const row = document.createElement("tr");
+
+    row.innerHTML = `
+      <td>${entry1.species}</td>
+      <td>${entry1.upload_id}</td>
+      <td>${entry1.user_name}</td>
+      <td>${entry2.upload_id}</td>
+      <td>${entry2.user_name}</td>
+      <td>
+        <button onclick="combineEntries(${entry1.upload_id}, ${entry2.upload_id})">Combine</button>
+        <button onclick="dontCombineEntries(${entry1.upload_id}, ${entry2.upload_id})">Discard</button>
+      </td>
+    `;
+
+    combineTableBody.appendChild(row);
+  });
 }
 
 function findEntriesToCombine(entries) {
@@ -136,28 +267,6 @@ function findEntriesToCombine(entries) {
   return entriesToCombine;
 }
 
-function updateCombineTable(entriesToCombine) {
-  const combineTableBody = document.getElementById("combine-table-body");
-  combineTableBody.innerHTML = ""; // Clear previous table content
-
-  entriesToCombine.forEach(([entry1, entry2]) => {
-    const row = document.createElement("tr");
-
-    row.innerHTML = `
-      <td>${entry1.species}</td>
-      <td>${entry1.upload_id}</td>
-      <td>${entry1.user_name}</td>
-      <td>${entry2.upload_id}</td>
-      <td>${entry2.user_name}</td>
-      <td>
-        <button onclick="combineEntries(${entry1.upload_id}, ${entry2.upload_id})">Combine</button>
-        <button onclick="discardEntries(${entry1.upload_id}, ${entry2.upload_id})">Discard</button>
-      </td>
-    `;
-
-    combineTableBody.appendChild(row);
-  });
-}
 async function combineEntries(uploadId1, uploadId2) {
   console.log(`Combining entries: ${uploadId1} and ${uploadId2}`);
 
@@ -178,16 +287,34 @@ async function combineEntries(uploadId1, uploadId2) {
     console.log(`Entry 2:`, entry2);
 
     // Get the current linked IDs for both entries, if any
+
     const linked1 = entry1.linked
       ? entry1.linked
           .split(",")
           .filter((id) => id && id !== "null" && id !== null) // Filter out empty and "null"
       : [];
+
     const linked2 = entry2.linked
       ? entry2.linked
           .split(",")
           .filter((id) => id && id !== "null" && id !== null) // Filter out empty and "null"
       : [];
+
+    const not_linked1 = entry1.not_linked
+      ? entry1.linked
+          .split(",")
+          .filter((id) => id && id !== "null" && id !== null)
+      : [];
+
+    const not_linked2 = entry2.not_linked
+      ? entry2.linked
+          .split(",")
+          .filter((id) => id && id !== "null" && id !== null)
+      : [];
+
+    // TODO: make this so it's checking all the values in not_linked, not just setting equal
+    if (not_linked1.includes(entry2.upload_id)) pass;
+    if (not_linked2.includes(entry1.upload_id)) pass;
 
     // Merge the linked lists and ensure no duplicates or invalid values
     const newLinked = Array.from(
@@ -307,87 +434,53 @@ async function combineEntries(uploadId1, uploadId2) {
   }
 }
 
+const round = (value, decimals) => {
+  return Math.round(value * Math.pow(10, decimals)) / Math.pow(10, decimals);
+};
+
+function calculateDistance(lat1, lon1, lat2, lon2) {
+  lat1 = round(lat1, 6);
+  lon1 = round(lon1, 6);
+  lat2 = round(lat2, 6);
+  lon2 = round(lon2, 6);
+
+  const dLat = Math.abs(lat1 - lat2).toFixed(10);
+  const dLon = Math.abs(lon1 - lon2).toFixed(10);
+
+  console.log(`Checking distance: dLat = ${dLat}, dLon = ${dLon}`);
+
+  return dLat <= 0.0001 && dLon <= 0.0001;
+}
+
+// the discard button for the similar table
+async function dontCombineEntries(uploadID1, uploadID2) {
+  const upload1 = await fetch(`http://127.0.0.1:3000/uploads/${uploadID1}`);
+  const upload2 = await fetch(`http://127.0.0.1:3000/uploads/${uploadID2}`);
+
+  const not_linked1 = {
+    ...upload1,
+    not_linked: upload2.upload_id,
+  };
+
+  await fetch(`http://127.0.0.1:3000/uploads/update/${uploadId1}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(not_linked1),
+  });
+
+  const not_linked2 = {
+    ...upload2,
+    not_linked: upload1.upload_id,
+  };
+
+  await fetch(`http://127.0.0.1:3000/uploads/update/${uploadId1}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(not_linked2),
+  });
+}
+
 document.getElementById("search-bar").addEventListener("input", filterList);
 
 // Fetch and display entries on page load
 fetchEntries();
-
-function openEditPopup(uploadId) {
-  selectedEntryId = uploadId;
-
-  // Find the selected entry
-  const entry = entries.find((e) => e.upload_id === uploadId);
-
-  if (!entry) {
-    console.error("Entry not found.");
-    return;
-  }
-
-  // Populate the edit form with entry data
-  document.getElementById("edit-name").value = entry.user_name || "";
-  document.getElementById("edit-plant").value = entry.plant_id || "";
-  document.getElementById("edit-species").value = entry.species || "";
-  document.getElementById("edit-genus").value = entry.genus || "";
-  document.getElementById("edit-family").value = entry.family || "";
-  document.getElementById("edit-order").value = entry.order || "";
-  const [latitude, longitude] = entry.location.split(",");
-  document.getElementById("edit-latitude").value = latitude.trim() || "";
-  document.getElementById("edit-longitude").value = longitude.trim() || "";
-  document.getElementById("edit-linked").value = entry.linked || "";
-
-  // Show the popup
-  document.getElementById("edit-popup").style.display = "block";
-}
-
-async function saveChanges() {
-  if (!selectedEntryId) return;
-
-  const updatedData = {
-    user_name: document.getElementById("edit-name").value,
-    plant_id: document.getElementById("edit-plant").value,
-    species: document.getElementById("edit-species").value,
-    genus: document.getElementById("edit-genus").value,
-    family: document.getElementById("edit-family").value,
-    order: document.getElementById("edit-order").value,
-    latitude: parseFloat(document.getElementById("edit-latitude").value),
-    longitude: parseFloat(document.getElementById("edit-longitude").value),
-    linked: document.getElementById("edit-linked").value,
-  };
-
-  const response = await fetch(
-    `http://127.0.0.1:3000/uploads/update/${selectedEntryId}`,
-    {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(updatedData),
-    }
-  );
-
-  if (response.ok) {
-    const updatedEntry = await response.json();
-    console.log("Upload updated successfully:", updatedEntry);
-
-    // Update the entries list locally
-    entries = entries.map((entry) =>
-      entry.upload_id === selectedEntryId ? { ...entry, ...updatedData } : entry
-    );
-
-    // Refresh the table
-    updateTable(entries);
-
-    fetchEntries();
-
-    // Hide the popup
-    closeEditPopup();
-  } else {
-    console.error("Failed to update upload.");
-  }
-}
-
-function closeEditPopup() {
-  // Hide the popup and overlay
-  document.getElementById("edit-popup").style.display = "none";
-  document.getElementById("popup-overlay").style.display = "none";
-}
